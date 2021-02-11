@@ -19,6 +19,7 @@ public class PlayerController : MonoBehaviour
 	private bool podePular = true;
 	public Vector2 input;
 
+	private Animacao animacao;
 	bool estaOlhandoParaDireita;
 	
 	//[HideInInspector] public Vector3 velocity;
@@ -27,7 +28,7 @@ public class PlayerController : MonoBehaviour
     {
         controller = GetComponent<Controller2D>();
         statusData = GetComponent<StatusData>();
-		
+		animacao = GetComponent<Animacao>();
     }
     private void Start()
     {
@@ -46,7 +47,8 @@ public class PlayerController : MonoBehaviour
 			input = new Vector2(-1, 0);
 			if (!estaOlhandoParaDireita)
 				Flip();
-			
+			animacao.Flip(true);
+			animacao.MudarAnimacao("Walk");
 		}
 	}
   
@@ -57,6 +59,8 @@ public class PlayerController : MonoBehaviour
 			input = new Vector2(1, 0);
 			if (estaOlhandoParaDireita)
 				Flip();
+			animacao.Flip(false);
+			animacao.MudarAnimacao("Walk");
 		}
 	}
 	private void Flip()

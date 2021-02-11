@@ -106,7 +106,7 @@ public class Controller2D : RaycastBase
 
 		CheckGroundedAhead(velocidade.x);
 
-		Debug.Log(velocidade);
+
 		transform.Translate(velocidade, Space.World);
 
 		if (estaNaPlataforma)
