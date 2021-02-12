@@ -157,5 +157,9 @@ public class PlayerController : MonoBehaviour
         {
 			statusData.velocidadeReal.y = 0;
         }
+		if(statusData.velocidadeReal.x <=0.1f && statusData.velocidadeReal.x >=-0.1f)
+        {
+			animacao.MudarAnimacao("Idle");
+		}
     }
 }

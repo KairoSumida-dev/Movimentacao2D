@@ -49,6 +49,8 @@ public class Animacao : MonoBehaviour
                 proximoTempoFrame = 1f / animacaoExecutando.FrameRate;//troca o tempo de execução 
                 frame = 0;//Reinicia o ciclo
                 tempoTemp = Time.time;//Tempo atual
+                render.sprite = animacaoExecutando.SpritesDaAnimacao[frame];//Executa o primeiro frame
+
             }
         }
     }
@@ -64,12 +66,13 @@ public class Animacao : MonoBehaviour
         //Se o tempo for o tempo do proximo frame
         if (Time.time - tempoTemp - proximoTempoFrame > (1f / animacaoExecutando.FrameRate))
         {
+            
             render.sprite = animacaoExecutando.SpritesDaAnimacao[frame];//Executa o proximo frame
             frame = (frame + 1) % animacaoExecutando.SpritesDaAnimacao.Count;//Seta o proximo frame
             //calculate the time of the next frame.
             proximoTempoFrame += 1f / animacaoExecutando.FrameRate;//Seta o proximo tempo de frame
         }
-       
+      
         
     }
 }
