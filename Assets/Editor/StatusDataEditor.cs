@@ -9,13 +9,18 @@ public class StatusDataEditor : Editor
     public SerializedProperty VelocidadeDeMovimento_Prop;
     public SerializedProperty MaxLife_Prop;
     public SerializedProperty TempoDeAceleracao_Prop;
-    public SerializedProperty VelocidadeReal_Prop;
+    
+    public SerializedProperty Gravidade_Prop;
+    public SerializedProperty GravidadePredefinida_Prop;
     private void OnEnable()
     {
-        VelocidadeDeMovimento_Prop = serializedObject.FindProperty("velocidadeDeMovimento");
+        VelocidadeDeMovimento_Prop = serializedObject.FindProperty("i_velocidadeDeMovimento");
         //MaxLife_Prop = serializedObject.FindProperty("maxLife");
-        TempoDeAceleracao_Prop = serializedObject.FindProperty("tempoDeAceleracao");
-        VelocidadeReal_Prop = serializedObject.FindProperty("velocidadeReal");
+        TempoDeAceleracao_Prop = serializedObject.FindProperty("i_tempoDeAceleracao");
+        
+        GravidadePredefinida_Prop = serializedObject.FindProperty("gravidadePreDefinida");
+        Gravidade_Prop = serializedObject.FindProperty("i_gravidade");
+
 
 }
     public override void OnInspectorGUI()
@@ -24,7 +29,12 @@ public class StatusDataEditor : Editor
         EditorGUILayout.PropertyField(VelocidadeDeMovimento_Prop, new GUIContent("Velocidade de Movimento"));
         // EditorGUILayout.PropertyField(MaxLife_Prop, new GUIContent("Max Life"));
         EditorGUILayout.PropertyField(TempoDeAceleracao_Prop, new GUIContent("Tempo de Aceleração"));
-        EditorGUILayout.PropertyField(VelocidadeReal_Prop, new GUIContent("Velocidade Real"));
+      
+        EditorGUILayout.PropertyField(GravidadePredefinida_Prop, new GUIContent("Gravidade Pré Definida?"));
+        if (!GravidadePredefinida_Prop.boolValue)
+        {
+            EditorGUILayout.PropertyField(Gravidade_Prop, new GUIContent("Gravidade"));
+        }
         serializedObject.ApplyModifiedProperties();
     }
 }

@@ -202,7 +202,8 @@ MonoBehaviour:
   apiceDoTempoDePulo: 0.4
   numeroMaximoDePulos: 1
   controller: {fileID: 0}
-  input: {x: 0, y: 0}
+  podePular: 1
+  podeAndarParaEsquerda: 1
 --- !u!114 &958285752
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -215,10 +216,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48585481c660eaf479c788c7ec5166f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  velocidadeDeMovimento: 11.6
-  tempoDeAceleracao: 0.1
-  alturaDoPulo: 3
-  velocidadeReal: {x: 0, y: 0}
+  i_velocidadeDeMovimento: 6.2
+  i_tempoDeAceleracao: 0.1
+  i_alturaDoPulo: 3
+  i_gravidade: 0
+  gravidadePreDefinida: 1
+  t_velocidadeDeMovimento: 0
+  t_gravidade: 0
+  t_alturaDoPulo: 0
+  t_tempoDeAceleracao: 0
 --- !u!50 &958285753
 Rigidbody2D:
   serializedVersion: 4
@@ -261,9 +267,9 @@ MonoBehaviour:
   offSetDeInicioDoRayDeVerificacao: 0.5
   direcaoDeComando: {x: 0, y: 0}
   TemTratamentoDeFisica: 1
-  malhaDoPersonagem: {fileID: 0}
+  malhaDoPersonagem: {fileID: 1280771559}
   eixoDeRotacao: 0
-  pesoDaInclinacao: 0
+  pesoDaInclinacao: 55
   acompanhaAnguloRampa: 1
 --- !u!212 &958285755
 SpriteRenderer:
@@ -362,10 +368,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b08d5418b3b065340aaba596b6fd6b7d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FrameRate: 2
+  FrameRate: 0
   NomeAnimacao: Idle
   SpritesDaAnimacao:
-  - {fileID: 21300000, guid: ef5a151949e9dd34ca72fda1d0e5b550, type: 3}
   - {fileID: 21300000, guid: ef5a151949e9dd34ca72fda1d0e5b550, type: 3}
 --- !u!1 &1280771559
 GameObject:
@@ -698,10 +703,10 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2043841462}
-  m_LocalRotation: {x: -0, y: -0, z: 0.0023745825, w: 0.9999972}
+  m_LocalRotation: {x: -0, y: -0, z: 0.16665886, w: 0.98601466}
   m_LocalPosition: {x: 1.7110074, y: 2.59, z: -4.2348137}
   m_LocalScale: {x: 1000, y: 5, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0.272}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 19.187}

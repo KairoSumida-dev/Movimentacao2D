@@ -11,14 +11,14 @@ public class PlayerController : MonoBehaviour
 	int numeroDePulosRestantes;
 
 	private StatusData statusData;
-    float gravidade;
     float velocidadeMaximaDoPulo;
     float velocidadeMinimaDoPulo;
     public Controller2D controller;
 	public bool estaJogando { get; private set; }
-	private bool podePular = true;
-	public Vector2 input;
-
+	public bool podePular = true;
+	public bool podeAndarParaEsquerda = true;
+	private Vector2 input;
+	private Vector2 velocidadeReal;
 	private Animacao animacao;
 	bool estaOlhandoParaDireita;
 	
@@ -32,9 +32,12 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
-		gravidade = -(2 * statusData.alturaDoPulo) / Mathf.Pow(apiceDoTempoDePulo, 2);
-		velocidadeMaximaDoPulo = Mathf.Abs(gravidade) * apiceDoTempoDePulo;
-		velocidadeMinimaDoPulo = Mathf.Sqrt(2 * Mathf.Abs(gravidade));
+		if (statusData.i_gravidade == 0)
+		{
+			statusData.i_gravidade = -(2 * statusData.i_alturaDoPulo) / Mathf.Pow(apiceDoTempoDePulo, 2);
+		}
+		velocidadeMaximaDoPulo = Mathf.Abs(statusData.i_gravidade) * apiceDoTempoDePulo;
+		velocidadeMinimaDoPulo = Mathf.Sqrt(2 * Mathf.Abs(statusData.i_gravidade));
 		estaOlhandoParaDireita = transform.localScale.x > 0;
 		numeroDePulosRestantes = numeroMaximoDePulos;
 		estaJogando = true;
@@ -42,6 +45,8 @@ public class PlayerController : MonoBehaviour
 	
 	public void MoverEsquerda()
 	{
+		if (!podeAndarParaEsquerda)
+			return;
 		if (estaJogando)
 		{
 			input = new Vector2(-1, 0);
@@ -79,9 +84,11 @@ public class PlayerController : MonoBehaviour
 	{
 		if (!estaJogando)
 			return;
+		if (!podePular)
+			return;
 		if (controller.collisions.abaixo)//está no chao
 		{
-			statusData.velocidadeReal.y = velocidadeMaximaDoPulo;
+			velocidadeReal.y = velocidadeMaximaDoPulo;
 			numeroDePulosRestantes = numeroMaximoDePulos;//seta o maximo de pulos que pode dar no ar
 		}
         else // já está no ar
@@ -89,7 +96,7 @@ public class PlayerController : MonoBehaviour
 			numeroDePulosRestantes--;
 			if (numeroDePulosRestantes > 0)
 			{
-				statusData.velocidadeReal.y = velocidadeMinimaDoPulo;
+				velocidadeReal.y = velocidadeMinimaDoPulo;
 
 			}
 		}
@@ -104,8 +111,8 @@ public class PlayerController : MonoBehaviour
 		else if (Input.GetKeyUp(KeyCode.A) || Input.GetKeyUp(KeyCode.LeftArrow) || Input.GetKeyUp(KeyCode.D) || Input.GetKeyUp(KeyCode.RightArrow))
 			PararDeMover();
 
-		if (Input.GetKeyDown(KeyCode.S))
-			Cair();
+		//if (Input.GetKeyDown(KeyCode.S))
+			//Cair();
 		else if (Input.GetKeyUp(KeyCode.S))
 			PararDeMover();
 
@@ -130,9 +137,9 @@ public class PlayerController : MonoBehaviour
 	}
 	public void JumpOff()
 	{
-		if (statusData.velocidadeReal.y > velocidadeMinimaDoPulo)
+		if (velocidadeReal.y > velocidadeMinimaDoPulo)
 		{
-			statusData.velocidadeReal.y = velocidadeMinimaDoPulo;
+			velocidadeReal.y = velocidadeMinimaDoPulo;
 		}
 	}
 	public void Cair()
@@ -143,21 +150,21 @@ public class PlayerController : MonoBehaviour
     {
 		HandleInput();
 
-		float velocidadeAlvo = input.x * statusData.velocidadeDeMovimento;
-		statusData.velocidadeReal.x = Mathf.SmoothDamp(statusData.velocidadeReal.x, velocidadeAlvo, ref suavisacaoNoMovimentoX, (controller.collisions.abaixo) ? 0.2f : statusData.tempoDeAceleracao);
+		float velocidadeAlvo = input.x * statusData.t_velocidadeDeMovimento;
+		velocidadeReal.x = Mathf.SmoothDamp(velocidadeReal.x, velocidadeAlvo, ref suavisacaoNoMovimentoX, (controller.collisions.abaixo) ? 0.2f : statusData.t_tempoDeAceleracao);
 
-		statusData.velocidadeReal.y += gravidade * Time.deltaTime;
+		velocidadeReal.y += statusData.t_gravidade * Time.deltaTime;
 
 	}
     private void LateUpdate()
     {
-		controller.Mover(statusData.velocidadeReal * Time.deltaTime, input);
+		controller.Mover(velocidadeReal * Time.deltaTime, input);
 
 		if(controller.collisions.abaixo|| controller.collisions.acima)
         {
-			statusData.velocidadeReal.y = 0;
+			velocidadeReal.y = 0;
         }
-		if(statusData.velocidadeReal.x <=0.1f && statusData.velocidadeReal.x >=-0.1f)
+		if(velocidadeReal.x <=0.1f && velocidadeReal.x >=-0.1f)
         {
 			animacao.MudarAnimacao("Idle");
 		}

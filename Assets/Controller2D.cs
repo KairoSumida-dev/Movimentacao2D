@@ -7,13 +7,11 @@ public class Controller2D : RaycastBase
 {
 	float anguloMaximoDeEscalada = 80;
 	float anguloMaximoDeDescida = 80;
-	float tamanhoDoRaycastDeVerificacao = 0.7f;//comprimento do raycast
+	float tamanhoDoRaycastDeVerificacao = 0.5f;//comprimento do raycast
 
 	[SerializeField] private float offSetDeInicioDoRayDeVerificacao = 0.5f;// Imagine que o ponto de inicio é no centro do personagem, com isso movemos para frente ou para tras o ponto de inicio do raycast
 	public CollisionInfo collisions;
-	[HideInInspector]
-	public Vector2 direcaoDeComando; // indica a direção que o personagem quer se mover
-	[HideInInspector]
+	[HideInInspector] public Vector2 direcaoDeComando; // indica a direção que o personagem quer se mover
 	public bool TemTratamentoDeFisica = true;
 	[SerializeField] private GameObject malhaDoPersonagem; // GameObject que tem toda a parte visual ou de animação do personagem. Essa sofrerá rotação e o personagem deve acompanhar
 	[SerializeField] private Eixo eixoDeRotacao; //Geralmente deve ser no eixo Y porem se o Y estiver rotacionando de forma errada, pode-se mudar para X ou Z
@@ -22,93 +20,147 @@ public class Controller2D : RaycastBase
 
 	//private Vector3 velocity; //Velocidade atual do personagem
 	public Vector2 direcaoAtual { get; set; }//Direção que ele está indo
+	private bool ok = false;
 
 	public override void Start()
 	{
 		base.Start();
-		collisions.faceDir = 1;//Aponta o personagem para a direita
 
+		collisions.faceDir = 1;//Aponta o personagem para a direita
+		collisions.abaixo = false;
+		StartCoroutine(IWait());
 	}
 
 	public void Mover(Vector3 velocidade, bool estaNaPlataforma)
 	{
 		Mover(velocidade, Vector2.zero, estaNaPlataforma);
 	}
-
+	IEnumerator IWait()
+    {
+		yield return new WaitWhile(() => collisions.abaixo);
+		ok = true;
+    }
 	public void Mover(Vector3 velocidade, Vector2 direcao, bool estaNaPlataforma = false)
 	{
-		/*
-		if (malhaDoPersonagem != null)//Verifica se o personagem vai rotacionar ou não
-		{
+		if (!ok)
+			return;
 
+		
 
+			float valf = 0;
 			RaycastHit2D hit = Physics2D.Raycast(new Vector2(boxcollider.bounds.center.x, boxcollider.bounds.min.y), Vector2.down, 1, collisionMask);
 			Vector3 temp = Vector3.Cross(hit.normal, Vector3.down);
 			Vector3 groundSlopeDir = Vector3.Cross(temp, hit.normal);
-
-
-			float valor = 0;
+			float valor;
 			valor = Vector2.Angle(hit.normal, Vector2.up);
-			if (groundSlopeDir.x < 0)
+
+			if (malhaDoPersonagem != null)//Verifica se o personagem vai rotacionar ou não
 			{
-				valor *= -1;
-			}
-			if (collisions.abaixo)
-			{
-				if (valor > 10)
-                {
-                    if (pesoDaInclinacao < 0)
-                    {
-						pesoDaInclinacao *= -1;
-                    }
+
+				if (groundSlopeDir.x < 0)//Rampa a nordeste
+				{
+					valor *= -1;
 				}
-				else if ((valor < -10))
-                {
-                    if (pesoDaInclinacao > 0)
-                    {
-						pesoDaInclinacao *= -1;
-                    }
-                }
-				else
-					pesoDaInclinacao = (int)valor;
+
+				if (collisions.abaixo)
+				{
+					if (valor > 10)
+					{
+						if (pesoDaInclinacao < 0)
+						{
+							pesoDaInclinacao *= 1;
+						}
+					}
+					else if ((valor < -10))
+					{
+						if (pesoDaInclinacao > 0)
+						{
+							pesoDaInclinacao *= -1;
+						}
+					}
+					else
+						pesoDaInclinacao = (int)valor;
+				}
+
+				//go.transform.localPosition = new Vector3(initialPoses.x, initialPoses.y- hit.distance, initialPoses.z);
+
+				malhaDoPersonagem.transform.eulerAngles = new Vector3(malhaDoPersonagem.transform.eulerAngles.x, malhaDoPersonagem.transform.eulerAngles.y, -valor);
+
 			}
 
-			//go.transform.localPosition = new Vector3(initialPoses.x, initialPoses.y- hit.distance, initialPoses.z);
+			UpdateRaycastOrigins();
+			collisions.Reset();
+			collisions.velocidadeAntiga = velocidade;
+			direcaoDeComando = direcao;
 
-			malhaDoPersonagem.transform.eulerAngles = new Vector3(malhaDoPersonagem.transform.eulerAngles.x, malhaDoPersonagem.transform.eulerAngles.y, -valor);
-
-		}
-		*/
-		UpdateRaycastOrigins();
-		collisions.Reset();
-		collisions.velocidadeAntiga = velocidade;
-		direcaoDeComando = direcao;
-
-		if (velocidade.x != 0)
-		{
-			collisions.faceDir = (int)Mathf.Sign(velocidade.x);
-		}
-
-
-		if (velocidade.y < 0)
-		{
-			DescendSlope(ref velocidade);
-		}
-
-		if (TemTratamentoDeFisica)
-		{
-			HorizontalCollisions(ref velocidade);
-			if (velocidade.y != 0)
+			if (velocidade.x != 0)
 			{
-				VerticalCollisions(ref velocidade);
+				collisions.faceDir = (int)Mathf.Sign(velocidade.x);
 			}
-		}
-
-		CheckGroundedAhead(velocidade.x);
 
 
-		transform.Translate(velocidade, Space.World);
+			if (velocidade.y < 0)
+			{
+				DescendSlope(ref velocidade);
+			}
 
+			if (TemTratamentoDeFisica)
+			{
+				HorizontalCollisions(ref velocidade);
+				if (velocidade.y != 0)
+				{
+					VerticalCollisions(ref velocidade);
+				}
+			}
+
+			CheckGroundedAhead();
+
+
+
+			if (collisions.caindoDaPlataforma)
+			{
+				valf = valor;
+				if (direcao.x > 0) //Andando>>
+				{
+					if (valf > 0) //Subida é >>
+					{//Fica dificil
+						valf = pesoDaInclinacao / 100 * valf / 100f; //vai dar um valor negativo
+						valf = velocidade.x * valf;
+						Debug.Log("valf" + valf + "       vel: " + velocidade.x);
+
+					}
+					else
+					{//Fica facil
+						valf = pesoDaInclinacao / 100 * valf * -1f / 100f;//vai dar um valor positivo
+						valf = velocidade.x * valf;
+						Debug.Log("valf" + valf + "       vel: " + velocidade.x);
+
+					}
+				}
+				else if (direcao.x < 0)//ta andando <<
+				{
+					if (valf < 0)// Subida é <<
+					{//Fica dificil <
+						valf = pesoDaInclinacao / 100 * -1 * valf / 100f; //vai dar um valor positivo pq a velocidade é negativa
+						valf = velocidade.x * valf;
+						Debug.Log("valf" + valf + "       vel: " + velocidade.x);
+					}
+					else
+					{
+						valf = pesoDaInclinacao / 100 * valf / 100f; //vai dar um valor negativo pq a velocidade é positiva
+						valf = velocidade.x * valf;
+						Debug.Log("valf" + valf + "       vel: " + velocidade.x);
+					}
+				}
+			}
+
+			//ESTOU TENTANDO ZERAR A VELOCIDADE P QUANDO ELE NAO ESTA DANDO O COMANDO PARA O LADO
+
+
+			velocidade = new Vector2(velocidade.x + valf, velocidade.y);
+			Debug.Log(velocidade.x);
+			transform.Translate(velocidade, Space.World);
+	
 		if (estaNaPlataforma)
 		{
 			collisions.abaixo = true;
@@ -145,11 +197,7 @@ public class Controller2D : RaycastBase
 
 				if (i == 0 && slopeAngle <= anguloMaximoDeEscalada)
 				{
-					if (collisions.escalarRampa)
-					{
-						collisions.escalarRampa = false;
-						velocity = collisions.velocidadeAntiga;
-					}
+					
 					float distanceToSlopeStart = 0;
 					if (slopeAngle != collisions.anguloRampaAntiga)
 					{
@@ -160,15 +208,12 @@ public class Controller2D : RaycastBase
 					velocity.x += distanceToSlopeStart * directionX;
 				}
 
-				if (!collisions.escalarRampa || slopeAngle > anguloMaximoDeEscalada)
+				if (slopeAngle > anguloMaximoDeEscalada)
 				{
 					velocity.x = (hit.distance - skinWidth) * directionX;
 					rayLength = hit.distance;
 
-					if (collisions.escalarRampa)
-					{
-						velocity.y = Mathf.Tan(collisions.anguloRampa * Mathf.Deg2Rad) * Mathf.Abs(velocity.x);
-					}
+			
 
 					collisions.esquerda = directionX == -1;
 					collisions.direita = directionX == 1;
@@ -189,7 +234,7 @@ public class Controller2D : RaycastBase
 			rayOrigin += Vector2.right * (verticalRaySpacing * i + velocity.x);
 			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.up * directionY, rayLength, collisionMask);
 
-			Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.red);
+			Debug.DrawRay(rayOrigin, Vector2.up * directionY * rayLength, Color.blue);
 
 			if (hit)
 			{
@@ -214,36 +259,17 @@ public class Controller2D : RaycastBase
 				velocity.y = (hit.distance - skinWidth) * directionY;
 				rayLength = hit.distance;
 
-				if (collisions.escalarRampa)
-				{
-					velocity.x = velocity.y / Mathf.Tan(collisions.anguloRampa * Mathf.Deg2Rad) * Mathf.Sign(velocity.x);
-				}
+			
 
 				collisions.abaixo = directionY == -1;
 				collisions.acima = directionY == 1;
 			}
 		}
 
-		if (collisions.escalarRampa)
-		{
-			float directionX = Mathf.Sign(velocity.x);
-			rayLength = Mathf.Abs(velocity.x) + skinWidth;
-			Vector2 rayOrigin = ((directionX == -1) ? raycastOrigins.bottomLeft : raycastOrigins.bottomRight) + Vector2.up * velocity.y;
-			RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.right * directionX, rayLength, collisionMask);
-
-			if (hit)
-			{
-				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
-				if (slopeAngle != collisions.anguloRampa)
-				{
-					velocity.x = (hit.distance - skinWidth) * directionX;
-					collisions.anguloRampa = slopeAngle;
-				}
-			}
-		}
+		
 	}
 
-	void CheckGroundedAhead(float velocity)
+	void CheckGroundedAhead()
 	{
 		float directionX = collisions.faceDir;
 
@@ -270,7 +296,6 @@ public class Controller2D : RaycastBase
 			velocity.y = climbVelocityY;
 			velocity.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(velocity.x);
 			collisions.abaixo = true;
-			collisions.escalarRampa = true;
 			collisions.anguloRampa = slopeAngle;
 		}
 	}
@@ -296,7 +321,6 @@ public class Controller2D : RaycastBase
 						velocity.y -= descendVelocityY;
 
 						collisions.anguloRampa = slopeAngle;
-						collisions.descerRampa = true;
 						collisions.abaixo = true;
 					}
 				}
@@ -304,20 +328,14 @@ public class Controller2D : RaycastBase
 		}
 	}
 
-	void ResetFallingThroughPlatform()
-	{
-		collisions.caindoDaPlataforma = false;
-	}
 
 	public struct CollisionInfo
 	{
-		public bool acima, abaixo;
-		public bool esquerda, direita;
+		public bool acima,abaixo, esquerda, direita;
 
 		public bool temChaoAFrente;
 
-		public bool escalarRampa;
-		public bool descerRampa;
+		
 		public float anguloRampa, anguloRampaAntiga;
 		public Vector3 velocidadeAntiga;
 		public int faceDir;
@@ -328,10 +346,7 @@ public class Controller2D : RaycastBase
 			acima = abaixo = false;
 			esquerda = direita = false;
 			temChaoAFrente = false;
-			escalarRampa = false;
-			descerRampa = false;
 
-			anguloRampaAntiga = anguloRampa;
 			anguloRampa = 0;
 		}
 	}

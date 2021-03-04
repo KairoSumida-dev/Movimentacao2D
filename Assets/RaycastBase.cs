@@ -19,6 +19,7 @@ public class RaycastBase : MonoBehaviour
 	public virtual void Awake()
 	{
 		boxcollider = GetComponent<BoxCollider2D>();
+		
 	}
 
 	public virtual void Start()
